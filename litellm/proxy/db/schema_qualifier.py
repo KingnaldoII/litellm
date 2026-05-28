@@ -37,7 +37,12 @@ from urllib.parse import parse_qs, urlparse
 # convention every Prisma-managed table follows (see schema.prisma), so an
 # allow-list isn't required — any future "LiteLLM_..." table picks up the
 # qualifier automatically.
-_TABLE_REF_RE = re.compile(r'"(LiteLLM_\w+)"')
+#
+# Negative lookbehind on `.` makes the rewrite idempotent: once an identifier
+# is qualified as `"schema"."LiteLLM_X"`, the inner `"LiteLLM_X"` is preceded
+# by `.` and the regex skips it on a second application. Also defensively
+# skips `<alias>."LiteLLM_X"` column references when they appear.
+_TABLE_REF_RE = re.compile(r'(?<!\.)"(LiteLLM_\w+)"')
 
 
 @lru_cache(maxsize=1)
